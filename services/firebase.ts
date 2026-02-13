@@ -4,20 +4,27 @@ import 'firebase/compat/firestore';
 
 const getFirebaseConfig = () => {
   try {
-    if (typeof window !== 'undefined' && window.__firebase_config) {
-      return JSON.parse(window.__firebase_config);
+    if (typeof window !== 'undefined' && (window as any).__firebase_config) {
+      return JSON.parse((window as any).__firebase_config);
     }
-    // Fallback for local development using vite environment variables
-    const env = (import.meta as any).env;
-    return {
-      apiKey: env.VITE_FIREBASE_API_KEY,
-      authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: env.VITE_FIREBASE_APP_ID
-    };
+    
+    // Check for Vite environment variables safely
+    const env = (import.meta as any).env || {};
+    
+    if (env.VITE_FIREBASE_API_KEY) {
+      return {
+        apiKey: env.VITE_FIREBASE_API_KEY,
+        authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: env.VITE_FIREBASE_APP_ID
+      };
+    }
+    
+    return null;
   } catch (e) {
+    console.warn("Error reading firebase config:", e);
     return null;
   }
 };
