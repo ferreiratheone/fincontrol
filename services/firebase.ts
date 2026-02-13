@@ -31,6 +31,21 @@ if (!firebase.apps.length && firebaseConfig?.apiKey) {
 
 export const auth = firebase.auth();
 export const db = firebase.firestore();
+
+// Enable offline persistence
+if (typeof window !== 'undefined') {
+  db.enablePersistence()
+    .catch((err) => {
+      if (err.code === 'failed-precondition') {
+        // Multiple tabs open, persistence can only be enabled in one tab at a a time.
+        console.warn('Firestore persistence failed: Multiple tabs open');
+      } else if (err.code === 'unimplemented') {
+        // The current browser does not support all of the features required to enable persistence
+        console.warn('Firestore persistence failed: Browser not supported');
+      }
+    });
+}
+
 export const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 export const isDemo = !firebaseConfig?.apiKey;
