@@ -1,0 +1,5 @@
+{
+  "name": "FinControl",
+  "description": "A comprehensive personal finance application featuring installment tracking, income management, and real-time balance visualization with a stunning 3D interface.",
+  "requestFramePermissions": []
+}
