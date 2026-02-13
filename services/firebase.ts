@@ -24,9 +24,20 @@ const getFirebaseConfig = () => {
 
 const firebaseConfig = getFirebaseConfig();
 
-// Initialize Firebase
-if (!firebase.apps.length && firebaseConfig?.apiKey) {
-  firebase.initializeApp(firebaseConfig);
+// Initialize Firebase with fallback to prevent blank screen crash
+if (firebaseConfig?.apiKey) {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+} else {
+  // Prevent crash in demo/dev mode when env vars are missing
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey: "demo",
+      projectId: "demo-project",
+      authDomain: "demo.firebaseapp.com"
+    });
+  }
 }
 
 export const auth = firebase.auth();
