@@ -349,76 +349,79 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     <div className="max-w-2xl mx-auto min-h-[100dvh] pb-32 px-4 md:px-0 animate-fade-in flex flex-col justify-start pt-safe-top">
       
       {/* HEADER */}
-      <header className="pt-10 mb-8">
-        <div className="flex justify-between items-center mb-10">
+      <header className="pt-6 mb-8 w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 w-full">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-600 p-2.5 rounded-2xl shadow-lg shadow-purple-600/40 animate-float">
-              <TrendingUp size={24} className="text-white" />
+            <div className="bg-purple-600 p-2 rounded-2xl shadow-lg shadow-purple-600/40 animate-float flex-shrink-0">
+              <TrendingUp size={20} className="text-white" />
             </div>
-            <div>
-              <h1 className="text-white font-black text-2xl tracking-tight leading-none">FinControl</h1>
+            <div className="overflow-hidden">
+              <h1 className="text-white font-black text-xl tracking-tight leading-none truncate">FinControl</h1>
               <div className="flex flex-col">
-                <span className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">Dashboard Premium</span>
+                <span className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">Dashboard Premium</span>
                 {user?.displayName && (
-                  <span className="text-purple-400 text-[11px] font-black mt-1">Olá, {user.displayName.split(' ')[0]}</span>
+                  <span className="text-purple-400 text-[10px] font-black mt-0.5 truncate">Olá, {user.displayName.split(' ')[0]}</span>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => auth.signOut()}
-              className="group flex items-center gap-2 text-slate-500 hover:text-rose-400 transition-all font-black text-[10px] uppercase tracking-widest"
-            >
-              Sair <LogOut size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-            <div className="flex items-center gap-2 glass-dark px-4 py-2 rounded-full border border-white/5">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 glass-dark px-3 py-1.5 rounded-full border border-white/5 flex-grow sm:flex-grow-0 justify-between sm:justify-start">
               <button 
                 onClick={() => changeMonth(-1)} 
                 className="text-slate-400 hover:text-white transition-colors p-1"
               >
-                <ChevronLeft size={16}/>
+                <ChevronLeft size={14}/>
               </button>
-              <span className="capitalize text-xs font-black text-white min-w-[100px] text-center">
+              <span className="capitalize text-[10px] font-black text-white min-w-[80px] text-center">
                 {getMonthLabel(currentDate)}
               </span>
               <button 
                 onClick={() => changeMonth(1)} 
                 className="text-slate-400 hover:text-white transition-colors p-1"
               >
-                <ChevronRight size={16}/>
+                <ChevronRight size={14}/>
               </button>
             </div>
-            <button 
-              onClick={openIncomeModal} 
-              className="bg-indigo-600/20 text-indigo-400 p-3 rounded-full border border-indigo-500/20 hover:bg-indigo-600 hover:text-white transition-all duration-300"
-            >
-              <Wallet size={20} />
-            </button>
+            <div className="flex items-center gap-3 ml-auto sm:ml-0">
+              <button 
+                onClick={openIncomeModal} 
+                className="bg-indigo-600/20 text-indigo-400 p-2.5 rounded-full border border-indigo-500/20 hover:bg-indigo-600 hover:text-white transition-all duration-300"
+              >
+                <Wallet size={18} />
+              </button>
+              <button 
+                onClick={() => auth.signOut()}
+                className="group flex items-center gap-2 text-slate-500 hover:text-rose-400 transition-all font-black text-[9px] uppercase tracking-widest bg-white/5 px-3 py-2 rounded-full border border-white/5"
+              >
+                Sair <LogOut size={14} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* MAIN CARD */}
-        <div className="glass-dark rounded-[2.5rem] p-8 relative overflow-hidden group shadow-2xl">
+        <div className="glass-dark rounded-[2rem] p-6 relative overflow-hidden group shadow-2xl w-full">
+
           {/* Subtle background glow */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-indigo-600/30 transition-all duration-700" />
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-600/20 transition-all duration-700" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Saldo Disponível</p>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Saldo Disponível</p>
             {/* Show Spending Limit Progress if set */}
             {typeof currentIncome.spendingLimit === 'number' && currentIncome.spendingLimit > 0 && (
-               <div className="mt-6 pt-6 border-t border-white/5 animate-fade-in delay-100">
+               <div className="mt-4 pt-4 border-t border-white/5 animate-fade-in delay-100">
                   <div className="flex justify-between items-end mb-2">
                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                        <AlertCircle size={12} className="text-amber-500" /> Teto de Gastos
+                        <AlertCircle size={10} className="text-amber-500" /> Teto de Gastos
                      </span>
-                     <span className="text-xs font-bold text-amber-200">
+                     <span className="text-[10px] font-bold text-amber-200">
                         {((stats.totalExp / currentIncome.spendingLimit) * 100).toFixed(1)}% <span className="text-slate-500">de {formatCurrency(currentIncome.spendingLimit)}</span>
                      </span>
                   </div>
-                  <div className="w-full h-3 bg-slate-900/50 rounded-full overflow-hidden border border-white/5">
+                  <div className="w-full h-2 bg-slate-900/50 rounded-full overflow-hidden border border-white/5">
                      <div 
                         className={`h-full rounded-full transition-all duration-1000 ${
                            stats.totalExp > currentIncome.spendingLimit ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 
@@ -430,7 +433,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   </div>
                </div>
             )}
-            <h2 className="text-5xl font-black text-white tracking-tighter mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 truncate">
                 {formatCurrency(stats.balance)}
             </h2>
               <div className="flex gap-4">
