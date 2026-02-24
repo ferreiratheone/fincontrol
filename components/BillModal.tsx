@@ -52,7 +52,7 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
                 required 
                 type="text" 
                 placeholder="Ex: Supermercado Mensal" 
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-white placeholder:text-slate-700 transition-all" 
+                className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-5 focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-white placeholder:text-slate-700 transition-all" 
                 value={data.name} 
                 onChange={e => onChange({...data, name: e.target.value})} 
               />
@@ -63,13 +63,13 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
             <div className="space-y-2 col-span-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Valor</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs">R$</span>
+                <span className="absolute left-3 top-0 bottom-0 flex items-center justify-center text-slate-500 font-bold text-xs pointer-events-none">R$</span>
                 <input 
                   required 
                   type="number" 
                   step="0.01" 
                   placeholder="0,00" 
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-8 pr-2 py-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-white placeholder:text-slate-700 transition-all" 
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-8 pr-2 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-white placeholder:text-slate-700 transition-all" 
                   value={data.totalValue} 
                   onChange={e => onChange({...data, totalValue: e.target.value})} 
                 />
@@ -82,7 +82,7 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
                   type="number" 
                   min="1" 
                   placeholder="1x" 
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-center text-white placeholder:text-slate-700 transition-all" 
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-center text-white placeholder:text-slate-700 transition-all" 
                   value={data.installments} 
                   onChange={e => onChange({...data, installments: e.target.value})} 
                 />
@@ -97,7 +97,7 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
                   min="1" 
                   max="31"
                   placeholder="Dia" 
-                  className="w-full bg-slate-800/50 border border-white/10 rounded-2xl px-4 py-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-center text-white placeholder:text-slate-700 transition-all" 
+                  className="w-full h-14 bg-slate-800/50 border border-white/10 rounded-2xl px-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-center text-white placeholder:text-slate-700 transition-all" 
                   value={data.dueDate || ''} 
                   onChange={e => onChange({...data, dueDate: e.target.value})} 
                 />
@@ -140,7 +140,7 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
           
           <button 
             type="submit" 
-            className="w-full bg-indigo-600 py-5 rounded-[1.5rem] text-white font-black text-lg active:scale-95 transition-all shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:shadow-indigo-600/40 mt-4 flex items-center justify-center gap-3"
+            className="w-full h-14 bg-indigo-600 rounded-2xl text-white font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 hover:shadow-indigo-600/40 mt-4 flex items-center justify-center gap-3"
           >
             {isEditing ? 'Salvar Alterações' : 'Confirmar Lançamento'}
           </button>

@@ -27,7 +27,8 @@ import {
   Star,
   CreditCard,
   LogOut,
-  Pencil
+  Pencil,
+  User
 } from 'lucide-react';
 import { db, isDemo, auth } from '../services/firebase';
 import { Bill, Income, Stats, NewBillForm, IncomeForm } from '../types';
@@ -67,6 +68,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   
   // Tab State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history'>('dashboard');
+
+  // Haptic feedback function for native app feel
+  const vibrate = (duration: number | number[] = 50) => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      // Catch in case browser doesn't permit it
+      try { navigator.vibrate(duration as VibratePattern); } catch(e) {}
+    }
+  };
 
   // Form States
   const [newBill, setNewBill] = useState<NewBillForm>({ 
@@ -210,6 +219,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   // --- ACTIONS ---
   const openIncomeModal = () => {
+    vibrate();
     setIncomeData({
       salary: currentIncome.salary ? currentIncome.salary.toString() : '',
       vale: currentIncome.vale ? currentIncome.vale.toString() : '',
@@ -299,8 +309,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       
       if (limit > 0 && newTotalExp > limit * 0.8) {
          showToast(`Alerta: ${(newTotalExp / limit * 100).toFixed(0)}% do limite atingido!`, "warning");
+         vibrate([100, 50, 100]); // warning vibrate pattern
       } else {
          showToast("Lançamento adicionado!", "success");
+         vibrate();
       }
     }
 
@@ -323,6 +335,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   };
 
   const updateStatus = async (id: string, isPaid: boolean) => {
+    vibrate();
     await db.collection('bills').doc(id).update({ isPaid });
   };
 
@@ -348,162 +361,134 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   return (
     <div className="max-w-xl mx-auto min-h-[100dvh] pb-32 px-4 animate-fade-in flex flex-col justify-start pt-safe-top">
       
-      {/* HEADER */}
-      <header className="pt-6 mb-8 w-full">
-        <div className="flex flex-col justify-between items-start gap-6 mb-8 w-full">
+      {/* HEADER - HOLOGRAPHIC CARD DESIGN */}
+      <header className="pt-6 mb-8 w-full z-10 relative">
+        <div className="flex justify-between items-center mb-6 px-1">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-600 p-2 rounded-2xl shadow-lg shadow-purple-600/40 animate-float flex-shrink-0">
-              <TrendingUp size={20} className="text-white" />
-            </div>
-            <div className="overflow-hidden">
-              <h1 className="text-white font-black text-xl tracking-tight leading-none truncate">FinControl</h1>
-              <div className="flex flex-col">
-                <span className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">Dashboard Premium</span>
-                {user?.displayName && (
-                  <span className="text-purple-400 text-[10px] font-black mt-0.5 truncate">Olá, {user.displayName.split(' ')[0]}</span>
-                )}
-              </div>
-            </div>
+             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 p-[2px] shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center border border-white/10">
+                   <User className="text-white w-5 h-5" />
+                </div>
+             </div>
+             <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bem-vindo(a),</p>
+                <h1 className="text-white font-black text-sm">{user?.displayName?.split(' ')[0] || 'Gestor'}</h1>
+             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full">
-            <div className="flex items-center gap-2 glass-dark px-3 py-1.5 rounded-full border border-white/5 flex-grow justify-between">
-              <button 
-                onClick={() => changeMonth(-1)} 
-                className="text-slate-400 hover:text-white transition-colors p-1"
-              >
-                <ChevronLeft size={14}/>
-              </button>
-              <span className="capitalize text-[10px] font-black text-white min-w-[80px] text-center">
-                {getMonthLabel(currentDate)}
-              </span>
-              <button 
-                onClick={() => changeMonth(1)} 
-                className="text-slate-400 hover:text-white transition-colors p-1"
-              >
-                <ChevronRight size={14}/>
-              </button>
-            </div>
-            <div className="flex items-center gap-3 ml-auto">
-              <button 
-                onClick={openIncomeModal} 
-                className="bg-indigo-600/20 text-indigo-400 p-2.5 rounded-full border border-indigo-500/20 hover:bg-indigo-600 hover:text-white transition-all duration-300"
-              >
-                <Wallet size={18} />
-              </button>
-              <button 
-                onClick={() => auth.signOut()}
-                className="group flex items-center gap-2 text-slate-500 hover:text-rose-400 transition-all font-black text-[9px] uppercase tracking-widest bg-white/5 px-3 py-2 rounded-full border border-white/5"
-              >
-                Sair <LogOut size={14} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={openIncomeModal} 
+              className="w-12 h-12 rounded-2xl glass-dark flex items-center justify-center text-slate-300 hover:text-white hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all"
+            >
+              <Wallet size={20} />
+            </button>
+            <button 
+              onClick={() => auth.signOut()}
+              className="w-12 h-12 rounded-2xl glass-dark flex items-center justify-center text-slate-500 hover:text-rose-400 hover:border-rose-400/50 hover:shadow-[0_0_15px_rgba(244,63,94,0.3)] transition-all"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
 
-        {/* MAIN CARD */}
-        <div className="glass-dark rounded-[2rem] p-6 relative overflow-hidden group shadow-2xl w-full">
+        {/* MONTH SELECTOR PILL */}
+        <div className="flex justify-center mb-6">
+           <div className="h-12 glass-dark rounded-full px-2 flex items-center gap-4 border border-white/10 shadow-lg">
+              <button onClick={() => { changeMonth(-1); vibrate(); }} className="w-10 h-10 flex items-center justify-center rounded-full text-slate-400 hover:text-indigo-400 hover:bg-white/5 transition-colors">
+                <ChevronLeft size={18} />
+              </button>
+              <span className="capitalize text-[11px] font-black text-white min-w-[100px] text-center tracking-widest">
+                {getMonthLabel(currentDate)}
+              </span>
+              <button onClick={() => { changeMonth(1); vibrate(); }} className="w-10 h-10 flex items-center justify-center rounded-full text-slate-400 hover:text-indigo-400 hover:bg-white/5 transition-colors">
+                <ChevronRight size={18} />
+              </button>
+           </div>
+        </div>
 
-          {/* Subtle background glow */}
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-indigo-600/30 transition-all duration-700" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-600/20 transition-all duration-700" />
+        {/* VIRTUAL CREDIT CARD (GLASS + HOLO) */}
+        <div className="glass-card rounded-3xl p-6 relative hologram-effect group animate-float transform-gpu">
+           {/* Card Chips & Logos */}
+           <div className="flex justify-between items-start mb-6">
+              <div className="w-12 h-8 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-600 opacity-80 shadow-md"></div>
+              <div className="flex items-center gap-1.5 opacity-70">
+                 <div className="w-6 h-6 rounded-full bg-white/40"></div>
+                 <div className="w-6 h-6 rounded-full bg-white/20 -ml-3"></div>
+              </div>
+           </div>
 
-          <div className="relative z-10 flex flex-col justify-between gap-6">
-            <div>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Saldo Disponível</p>
-            {/* Show Spending Limit Progress if set */}
-            {typeof currentIncome.spendingLimit === 'number' && currentIncome.spendingLimit > 0 && (
-               <div className="mt-4 pt-4 border-t border-white/5 animate-fade-in delay-100">
-                  <div className="flex justify-between items-end mb-2">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                        <AlertCircle size={10} className="text-amber-500" /> Teto de Gastos
-                     </span>
-                     <span className="text-[10px] font-bold text-amber-200">
-                        {((stats.totalExp / currentIncome.spendingLimit) * 100).toFixed(1)}% <span className="text-slate-500">de {formatCurrency(currentIncome.spendingLimit)}</span>
-                     </span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-900/50 rounded-full overflow-hidden border border-white/5">
-                     <div 
-                        className={`h-full rounded-full transition-all duration-1000 ${
-                           stats.totalExp > currentIncome.spendingLimit ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 
-                           stats.totalExp > currentIncome.spendingLimit * 0.8 ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 
-                           'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
-                        }`}
-                        style={{ width: `${Math.min((stats.totalExp / currentIncome.spendingLimit) * 100, 100)}%` }}
-                     />
-                  </div>
-               </div>
-            )}
-            <h2 className="text-3xl font-black text-white tracking-tighter mb-4 truncate">
+           {/* Main Balance */}
+           <div className="mb-6 relative z-10">
+              <p className="text-[10px] text-indigo-200/70 font-black uppercase tracking-widest mb-1">Saldo Disponível</p>
+              <h2 className="text-4xl font-black text-white tracking-tighter drop-shadow-md">
                 {formatCurrency(stats.balance)}
-            </h2>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-                  <span className="text-xs font-bold text-slate-300">Renda: {formatCurrency(stats.totalInc)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.5)]" />
-                  <span className="text-xs font-bold text-slate-300">Despesas: {formatCurrency(stats.totalExp)}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="w-full flex flex-col items-center">
-              <div className="relative w-24 h-24 mb-2">
-                <svg className="w-full h-full" viewBox="0 0 36 36">
-                  <path
-                    className="text-white/5 stroke-current"
-                    strokeWidth="3"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              </h2>
+           </div>
+
+           {/* Spending Limit Progress if Set */}
+           {typeof currentIncome.spendingLimit === 'number' && currentIncome.spendingLimit > 0 && (
+             <div className="mb-4">
+               <div className="flex justify-between items-end mb-1.5">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-200/50">Teto de Gastos</span>
+                  <span className="text-[9px] font-bold text-indigo-200">
+                    {((stats.totalExp / currentIncome.spendingLimit) * 100).toFixed(1)}%
+                  </span>
+               </div>
+               <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                       stats.totalExp > currentIncome.spendingLimit ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,1)]' : 
+                       stats.totalExp > currentIncome.spendingLimit * 0.8 ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,1)]' : 
+                       'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,1)]'
+                    }`}
+                    style={{ width: `${Math.min((stats.totalExp / currentIncome.spendingLimit) * 100, 100)}%` }}
                   />
-                  <path
-                    className={`${stats.usagePerc > 90 ? 'text-rose-500' : 'text-emerald-500'} stroke-current transition-all duration-1000 ease-out`}
-                    strokeWidth="3"
-                    strokeDasharray={`${Math.min(stats.usagePerc, 100)}, 100`}
-                    strokeLinecap="round"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <span className="text-lg font-black text-white">{Math.round(stats.usagePerc)}%</span>
-                  <span className="text-[7px] font-bold text-slate-500 uppercase">Uso</span>
-                </div>
+               </div>
+             </div>
+           )}
+
+           {/* Income / Expense Footer */}
+           <div className="flex gap-6 mt-4 pt-4 border-t border-white/10 relative z-10">
+              <div>
+                 <p className="text-[9px] font-bold text-emerald-400/80 uppercase tracking-wider mb-0.5">Renda</p>
+                 <p className="text-xs font-black text-white">{formatCurrency(stats.totalInc)}</p>
               </div>
-            </div>
-          </div>
+              <div>
+                 <p className="text-[9px] font-bold text-rose-400/80 uppercase tracking-wider mb-0.5">Gastos</p>
+                 <p className="text-xs font-black text-white">{formatCurrency(stats.totalExp)}</p>
+              </div>
+              <div className="ml-auto flex items-center justify-center">
+                 <div className="relative w-10 h-10">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path className="text-white/10 stroke-current" strokeWidth="4" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path className={`${stats.usagePerc > 90 ? 'text-rose-400' : 'text-cyan-400'} stroke-current transition-all duration-1000`} strokeWidth="4" strokeDasharray={`${Math.min(stats.usagePerc, 100)}, 100`} fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[8px] font-black text-white">{Math.round(stats.usagePerc)}%</span>
+                    </div>
+                 </div>
+              </div>
+           </div>
         </div>
       </header>
 
-      {/* TABS & SEARCH */}
-      <div className="flex flex-col justify-between gap-6 mb-8">
-        <div className="flex gap-2 glass-dark p-1.5 rounded-2xl border border-white/5 self-start">
-          <button 
-            onClick={() => setActiveTab('dashboard')} 
-            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'dashboard' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'text-slate-400 hover:text-white'}`}
-          >
-            Resumo
-          </button>
-          <button 
-            onClick={() => setActiveTab('history')} 
-            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'text-slate-400 hover:text-white'}`}
-          >
-            Lançamentos
-          </button>
+      {/* SEARCH AND FILTERS (HISTORY TAB) */}
+      {activeTab === 'history' && (
+        <div className="mb-6 px-1 animate-[fadeIn_0.5s_ease-in-out]">
+          <div className="relative group w-full">
+            <div className="absolute left-0 top-0 bottom-0 w-14 flex items-center justify-center pointer-events-none">
+              <Search className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Pesquisar contas..." 
+              className="w-full h-14 pl-14 pr-4 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-white/5 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm font-medium text-white placeholder:text-slate-600 shadow-lg"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-
-        <div className="relative group max-w-xs w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder="Pesquisar contas..." 
-            className="w-full glass-dark pl-12 pr-4 py-3 rounded-2xl border border-white/5 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm text-white placeholder:text-slate-600"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
+      )}
 
       {/* CONTENT */}
       <main>
@@ -708,18 +693,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                       </div>
                     </div>
 
-                    <div className="flex gap-2 mt-6">
+                    <div className="flex gap-3 mt-6">
                       <button 
                         onClick={() => updateStatus(bill.id, true)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${bill.isPaid ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/20'}`}
+                        className={`flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${bill.isPaid ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/20'}`}
                       >
-                        <CheckCircle2 size={14} /> Pago
+                        <CheckCircle2 size={16} /> Pago
                       </button>
                       <button 
                         onClick={() => updateStatus(bill.id, false)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!bill.isPaid ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/20'}`}
+                        className={`flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!bill.isPaid ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-white/5 text-slate-500 border border-white/5 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/20'}`}
                       >
-                        <AlertCircle size={14} /> Pendente
+                        <AlertCircle size={16} /> Pendente
                       </button>
                     </div>
                   </div>
@@ -730,13 +715,36 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         )}
       </main>
 
-      {/* FAB */}
-      <button 
-        onClick={() => setIsBillModalOpen(true)} 
-        className="fixed bottom-10 right-10 w-20 h-20 bg-indigo-600 text-white rounded-full shadow-2xl shadow-indigo-600/40 flex items-center justify-center active:scale-90 hover:scale-105 transition-all z-40 border-4 border-slate-900 group"
-      >
-        <Plus size={40} className="group-hover:rotate-90 transition-transform duration-300" />
-      </button>
+      {/* BOTTOM NAVIGATION BAR */}
+      <div className="fixed bottom-0 left-0 right-0 w-full sm:max-w-[390px] mx-auto z-40 px-6 pb-6 pt-4 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none flex justify-center">
+        <div className="glass-dark border border-white/10 rounded-[2rem] p-2 flex items-center justify-between pointer-events-auto backdrop-blur-2xl shadow-2xl relative w-full mb-[env(safe-area-inset-bottom)]">
+          <button 
+            onClick={() => { setActiveTab('dashboard'); vibrate(); }} 
+            className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all duration-300 ${activeTab === 'dashboard' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <Home size={22} className={activeTab === 'dashboard' ? 'scale-110 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]' : ''} />
+            <span className="text-[9px] font-black uppercase tracking-widest">Início</span>
+          </button>
+
+          {/* CENTER FAB - Perfectly positioned */}
+          <div className="relative px-2">
+            <button 
+              onClick={() => { setIsBillModalOpen(true); vibrate(); }} 
+              className="w-14 h-14 bg-indigo-600 text-white rounded-full shadow-[0_0_30px_rgba(79,70,229,0.5)] flex items-center justify-center active:scale-90 hover:scale-105 transition-all -translate-y-6 border-[5px] border-slate-950"
+            >
+              <Plus size={28} />
+            </button>
+          </div>
+
+          <button 
+            onClick={() => { setActiveTab('history'); vibrate(); }} 
+            className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all duration-300 ${activeTab === 'history' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <Calendar size={22} className={activeTab === 'history' ? 'scale-110 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]' : ''} />
+            <span className="text-[9px] font-black uppercase tracking-widest">Contas</span>
+          </button>
+        </div>
+      </div>
 
       {/* MODALS */}
       <IncomeModal 

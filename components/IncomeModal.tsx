@@ -34,12 +34,12 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
             <div className="col-span-3 space-y-2">
                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Salário Líquido</label>
                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
+                  <span className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center text-slate-500 font-bold pointer-events-none">R$</span>
                   <input 
                     type="number" 
                     step="0.01" 
                     placeholder="0,00" 
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-4 focus:ring-2 focus:ring-emerald-500 outline-none font-black text-lg text-white placeholder:text-slate-700 transition-all" 
+                    className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 focus:ring-2 focus:ring-emerald-500 outline-none font-black text-lg text-white placeholder:text-slate-700 transition-all" 
                     value={data.salary} 
                     onChange={e => onChange({...data, salary: e.target.value})} 
                   />
@@ -52,7 +52,7 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
                   min="1" 
                   max="31"
                   placeholder="Dia..." 
-                  className="w-full bg-slate-800/50 border border-white/10 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-center text-white placeholder:text-slate-700 transition-all" 
+                  className="w-full h-14 bg-slate-800/50 border border-white/10 rounded-2xl px-5 focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-center text-white placeholder:text-slate-700 transition-all" 
                   value={data.salaryDate || ''} 
                   onChange={e => onChange({...data, salaryDate: e.target.value})} 
                 />
@@ -64,11 +64,11 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
               <div className="col-span-3 space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Vale / Extra</label>
                 <div className="relative group">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-bold group-focus-within:text-emerald-500 transition-colors">R$</span>
+                  <span className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center text-slate-500 font-bold pointer-events-none group-focus-within:text-emerald-500 transition-colors">R$</span>
                   <input
                     type="number"
                     placeholder="0,00"
-                    className="w-full bg-slate-900/50 border border-white/5 rounded-2xl pl-12 pr-4 py-4 focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-white placeholder:text-slate-700 transition-all"
+                    className="w-full h-14 bg-slate-900/50 border border-white/5 rounded-2xl pl-12 pr-4 focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-white placeholder:text-slate-700 transition-all"
                     value={data.vale}
                     onChange={(e) => onChange({ ...data, vale: e.target.value })}
                   />
@@ -81,7 +81,7 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
                     min="1" 
                     max="31"
                     placeholder="Dia..." 
-                    className="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-center text-white placeholder:text-slate-700 transition-all" 
+                    className="w-full h-14 bg-slate-800/50 border border-white/5 rounded-2xl px-5 focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-center text-white placeholder:text-slate-700 transition-all" 
                     value={data.valeDate || ''} 
                     onChange={e => onChange({...data, valeDate: e.target.value})} 
                   />
@@ -96,12 +96,12 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
                 </label>
              </div>
              <div className="relative group">
-                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-bold group-focus-within:text-amber-500 transition-colors">R$</span>
+                <span className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center text-slate-500 font-bold pointer-events-none group-focus-within:text-amber-500 transition-colors">R$</span>
                 <input 
                   type="number" 
                   step="0.01" 
                   placeholder="Defina um limite..." 
-                  className="w-full bg-amber-500/5 border border-amber-500/10 rounded-2xl pl-12 pr-5 py-4 focus:ring-2 focus:ring-amber-500 outline-none font-black text-lg text-amber-200 placeholder:text-amber-900/40 transition-all" 
+                  className="w-full h-14 bg-amber-500/5 border border-amber-500/10 rounded-2xl pl-12 pr-5 focus:ring-2 focus:ring-amber-500 outline-none font-black text-lg text-amber-200 placeholder:text-amber-900/40 transition-all" 
                   value={data.spendingLimit || ''} 
                   onChange={e => onChange({...data, spendingLimit: e.target.value})} 
                 />
@@ -112,7 +112,7 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
           <button 
             type="button"
             onClick={() => onChange({...data, onlySalary: !data.onlySalary})} 
-            className={`p-5 rounded-2xl flex items-center justify-between border-2 transition-all duration-300 ${data.onlySalary ? 'bg-indigo-600/10 border-indigo-600/30 text-white' : 'border-white/5 bg-white/5 text-slate-400'}`}
+            className={`h-14 px-5 rounded-2xl flex items-center justify-between border-2 transition-all duration-300 ${data.onlySalary ? 'bg-indigo-600/10 border-indigo-600/30 text-white' : 'border-white/5 bg-white/5 text-slate-400'}`}
           >
             <div className="flex items-center gap-3">
                <ArrowUpCircle size={20} className={data.onlySalary ? 'text-indigo-400' : 'text-slate-600'} />
@@ -123,7 +123,7 @@ const IncomeModal: React.FC<IncomeModalProps> = ({ isOpen, onClose, onSave, data
           
           <button 
             type="submit" 
-            className="w-full bg-emerald-600 py-5 rounded-[1.5rem] text-white font-black text-lg active:scale-95 transition-all shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:shadow-emerald-600/40 mt-4 flex items-center justify-center gap-3"
+            className="w-full h-14 bg-emerald-600 rounded-2xl text-white font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 hover:shadow-emerald-600/40 mt-4 flex items-center justify-center gap-3"
           >
             Salvar Alterações
           </button>

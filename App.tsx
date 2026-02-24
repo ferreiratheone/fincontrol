@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import firebase from 'firebase/compat/app';
-import { auth, googleProvider, isDemo } from './services/firebase';
+import { auth, isDemo } from './services/firebase';
 import LoginScreen from './components/LoginScreen';
 import Dashboard from './components/Dashboard';
 import Background3D from './components/Background3D';
@@ -10,18 +10,6 @@ export default function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for redirect results (Google Logout/Login redirect)
-    auth.getRedirectResult().then((result) => {
-      if (result.user) {
-        setUser(result.user);
-      }
-    }).catch((err) => {
-      console.error("Redirect login error:", err);
-      if (err.code !== 'auth/cancelled-popup-request') {
-        alert("Erro no login via redirecionamento: " + err.message);
-      }
-    });
-
     // Firebase auth listener
     const unsubscribe = auth.onAuthStateChanged((u) => {
       setUser(u);
@@ -52,21 +40,8 @@ export default function App() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      // On mobile devices, Popups are often blocked or fail to render.
-      // Redirect is much more reliable for PWA and Mobile browsers.
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        await auth.signInWithRedirect(googleProvider);
-      } else {
-        await auth.signInWithPopup(googleProvider);
-      }
-    } catch (err: any) {
-      console.error("Google Login error:", err.message);
-      alert("Erro ao entrar com Google: " + err.message);
-    }
+  const handleResetPassword = async (email: string) => {
+    await auth.sendPasswordResetEmail(email);
   };
 
   return (
@@ -82,7 +57,7 @@ export default function App() {
           ) : !user ? (
             <LoginScreen 
               onLoginAttempt={handleManualLogin} 
-              onGoogleLogin={handleGoogleLogin} 
+              onResetPassword={handleResetPassword}
             />
           ) : (
             <Dashboard user={user} />

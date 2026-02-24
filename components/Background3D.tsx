@@ -6,146 +6,157 @@ const Background3D: React.FC = () => {
   useEffect(() => {
     if (!mountRef.current || !window.THREE) return;
 
-    // CLEANUP: Force clear any existing canvas to prevent "double globe"
     while (mountRef.current.firstChild) {
       mountRef.current.removeChild(mountRef.current.firstChild);
     }
 
     const THREE = window.THREE;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 200;
+    
+    // Add a very subtle fog for depth
+    scene.fog = new THREE.FogExp2(0x020617, 0.001);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 150, 400);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // optimize performance
     renderer.setSize(window.innerWidth, window.innerHeight);
-    
-    // Explicitly set canvas style
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.top = '0';
     renderer.domElement.style.left = '0';
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     
-    if (mountRef.current) {
-      mountRef.current.appendChild(renderer.domElement);
+    mountRef.current.appendChild(renderer.domElement);
+
+    // --- CYBER FINTECH MESH FIELD ---
+    const gridHelper = new THREE.GridHelper(2000, 50, 0x4f46e5, 0x1e293b);
+    gridHelper.position.y = -100;
+    scene.add(gridHelper);
+
+    // --- GLOWING PARTICLES (DATA NODES) ---
+    const particlesGeom = new THREE.BufferGeometry();
+    const particleCount = 2000;
+    const posArray = new Float32Array(particleCount * 3);
+    const colorsArray = new Float32Array(particleCount * 3);
+    
+    // Violet and Cyan theme
+    const color1 = new THREE.Color(0x8b5cf6); // violet
+    const color2 = new THREE.Color(0x06b6d4); // cyan
+
+    for(let i = 0; i < particleCount * 3; i+=3) {
+      // Create a massive vortex structure
+      const r = 800 * Math.sqrt(Math.random());
+      const theta = Math.random() * 2 * Math.PI;
+      const y = (Math.random() - 0.5) * 500;
+      
+      posArray[i] = r * Math.cos(theta);
+      posArray[i+1] = y;
+      posArray[i+2] = r * Math.sin(theta);
+      
+      // Mix colors
+      const mixedColor = color1.clone().lerp(color2, Math.random());
+      colorsArray[i] = mixedColor.r;
+      colorsArray[i+1] = mixedColor.g;
+      colorsArray[i+2] = mixedColor.b;
     }
 
-    const globe = new THREE.Group();
-    scene.add(globe);
+    particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    particlesGeom.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
 
-    // 1. Core Sphere (The inner "solid" look with grid)
-    const sphereGeom = new THREE.SphereGeometry(100, 48, 48);
-    const sphereMat = new THREE.MeshBasicMaterial({
-      color: 0x9333ea, // Purple-600
-      wireframe: true,
-      transparent: true,
-      opacity: 0.1,
-    });
-    const mainSphere = new THREE.Mesh(sphereGeom, sphereMat);
-    globe.add(mainSphere);
-
-    // 2. Latitude/Longitude Lines (The sharp globe lines)
-    const ringGeom = new THREE.SphereGeometry(100.5, 24, 24);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xa855f7, // Purple-500
-      wireframe: true,
-      transparent: true,
-      opacity: 0.2,
-    });
-    const ringSphere = new THREE.Mesh(ringGeom, ringMat);
-    globe.add(ringSphere);
-
-    // 3. Glowing Points on vertices
-    const pointsGeom = new THREE.SphereGeometry(102, 32, 32);
-    const pointsMat = new THREE.PointsMaterial({
-      color: 0xd8b4fe, // Purple-300
-      size: 1.5,
+    // Custom shader material for glowing dots
+    const particlesMat = new THREE.PointsMaterial({
+      size: 4,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
       transparent: true,
       opacity: 0.8,
       sizeAttenuation: true
     });
-    const globePoints = new THREE.Points(pointsGeom, pointsMat);
-    globe.add(globePoints);
 
-    // 4. Background Starfield
-    const starsGeom = new THREE.BufferGeometry();
-    const starsVertices = [];
-    for (let i = 0; i < 2000; i++) {
-      const x = (Math.random() - 0.5) * 2000;
-      const y = (Math.random() - 0.5) * 2000;
-      const z = (Math.random() - 0.5) * 2000;
-      starsVertices.push(x, y, z);
-    }
-    starsGeom.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-    const starsMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 1,
-      transparent: true,
-      opacity: 0.4,
-    });
-    const starField = new THREE.Points(starsGeom, starsMat);
-    scene.add(starField);
+    const particleSystem = new THREE.Points(particlesGeom, particlesMat);
+    scene.add(particleSystem);
 
-    // Interaction State
+    // Mouse Interaction
     let mouseX = 0;
     let mouseY = 0;
+    let targetX = 0;
+    let targetY = 0;
 
     const onMouseMove = (event: MouseEvent) => {
-      mouseX = (event.clientX - window.innerWidth / 2) * 0.05;
-      mouseY = (event.clientY - window.innerHeight / 2) * 0.05;
+      // Normalize mouse coordinates to -1 to 1
+      mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
     };
 
-    const onResize = () => {
+    const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
 
     window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', handleResize);
 
+    // Animation Loop
+    const clock = new THREE.Clock();
     let animationId: number;
+
     const animate = () => {
-      animationId = requestAnimationFrame(animate);
+      const elapsedTime = clock.getElapsedTime();
       
-      // Autonomous rotations
-      globe.rotation.y += 0.0015;
-      globe.rotation.x += 0.0005;
+      // Smooth mouse follow (easing)
+      targetX = mouseX * 200;
+      targetY = mouseY * 200;
+      camera.position.x += (targetX - camera.position.x) * 0.05;
+      camera.position.y += (150 + targetY - camera.position.y) * 0.05;
+      camera.lookAt(0, 0, 0);
+
+      // Rotate particle system slowly
+      particleSystem.rotation.y = elapsedTime * 0.05;
       
-      starField.rotation.y += 0.0002;
-      
-      // Mouse interaction influence
-      if (globe) {
-        globe.rotation.x += (mouseY * 0.005 - globe.rotation.x) * 0.02;
-        globe.rotation.y += (mouseX * 0.005 - globe.rotation.y) * 0.02;
+      // Make particles wave algorithmically
+      const positions = particleSystem.geometry.attributes.position.array as Float32Array;
+      for(let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        const x = positions[i3];
+        const z = positions[i3+2];
+        // Sine wave based on position and time
+        positions[i3+1] += Math.sin(elapsedTime * 2 + x * 0.01 + z * 0.01) * 0.5;
       }
+      particleSystem.geometry.attributes.position.needsUpdate = true;
       
+      // Move grid to simulate forward motion
+      gridHelper.position.z = (elapsedTime * 50) % 100;
+
       renderer.render(scene, camera);
+      animationId = requestAnimationFrame(animate);
     };
+
     animate();
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
       
       if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
           mountRef.current.removeChild(renderer.domElement);
       }
-      
-      // Safety disposal
       renderer.dispose();
-      try {
-        sphereGeom.dispose(); sphereMat.dispose();
-        ringGeom.dispose(); ringMat.dispose();
-        pointsGeom.dispose(); pointsMat.dispose();
-        starsGeom.dispose(); starsMat.dispose();
-      } catch (e) { /* ignore */ }
+      particlesGeom.dispose();
+      particlesMat.dispose();
     };
   }, []);
 
-  return <div ref={mountRef} className="fixed inset-0 z-0 bg-slate-950" />;
+  return (
+    <>
+      <div ref={mountRef} className="fixed inset-0 z-0 bg-[#020617]" />
+      {/* VIGNETTE GRADIENT OVERLAY FOR AESTHETICS */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,#020617_100%)] opacity-80" />
+    </>
+  );
 };
 
 export default Background3D;
