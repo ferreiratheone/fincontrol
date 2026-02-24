@@ -70,22 +70,24 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
-      <Background3D />
-      
-      <div className="relative z-10 w-full min-h-screen">
-        {isAuthLoading ? (
-           <div className="h-screen flex items-center justify-center">
-             <div className="w-8 h-8 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
-           </div>
-        ) : !user ? (
-          <LoginScreen 
-            onLoginAttempt={handleManualLogin} 
-            onGoogleLogin={handleGoogleLogin} 
-          />
-        ) : (
-          <Dashboard user={user} />
-        )}
+    <div className="bg-[#020617] min-h-[100dvh] flex items-center justify-center font-sans overflow-hidden selection:bg-purple-500/30">
+      <div className="w-full h-[100dvh] sm:h-[844px] sm:max-w-[390px] sm:rounded-[40px] sm:border-[8px] sm:border-slate-800 relative bg-slate-950 text-slate-100 overflow-hidden sm:shadow-2xl sm:shadow-purple-500/20">
+        <Background3D />
+        
+        <div className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden no-scrollbar">
+          {isAuthLoading ? (
+             <div className="h-full flex items-center justify-center">
+               <div className="w-8 h-8 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+             </div>
+          ) : !user ? (
+            <LoginScreen 
+              onLoginAttempt={handleManualLogin} 
+              onGoogleLogin={handleGoogleLogin} 
+            />
+          ) : (
+            <Dashboard user={user} />
+          )}
+        </div>
       </div>
     </div>
   );

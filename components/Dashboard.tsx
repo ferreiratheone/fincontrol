@@ -346,11 +346,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto min-h-[100dvh] pb-32 px-4 md:px-0 animate-fade-in flex flex-col justify-start pt-safe-top">
+    <div className="max-w-xl mx-auto min-h-[100dvh] pb-32 px-4 animate-fade-in flex flex-col justify-start pt-safe-top">
       
       {/* HEADER */}
       <header className="pt-6 mb-8 w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 w-full">
+        <div className="flex flex-col justify-between items-start gap-6 mb-8 w-full">
           <div className="flex items-center gap-3">
             <div className="bg-purple-600 p-2 rounded-2xl shadow-lg shadow-purple-600/40 animate-float flex-shrink-0">
               <TrendingUp size={20} className="text-white" />
@@ -365,8 +365,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-2 glass-dark px-3 py-1.5 rounded-full border border-white/5 flex-grow sm:flex-grow-0 justify-between sm:justify-start">
+          <div className="flex flex-wrap items-center gap-3 w-full">
+            <div className="flex items-center gap-2 glass-dark px-3 py-1.5 rounded-full border border-white/5 flex-grow justify-between">
               <button 
                 onClick={() => changeMonth(-1)} 
                 className="text-slate-400 hover:text-white transition-colors p-1"
@@ -383,7 +383,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 <ChevronRight size={14}/>
               </button>
             </div>
-            <div className="flex items-center gap-3 ml-auto sm:ml-0">
+            <div className="flex items-center gap-3 ml-auto">
               <button 
                 onClick={openIncomeModal} 
                 className="bg-indigo-600/20 text-indigo-400 p-2.5 rounded-full border border-indigo-500/20 hover:bg-indigo-600 hover:text-white transition-all duration-300"
@@ -407,7 +407,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-indigo-600/30 transition-all duration-700" />
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-emerald-600/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-emerald-600/20 transition-all duration-700" />
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="relative z-10 flex flex-col justify-between gap-6">
             <div>
               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Saldo Disponível</p>
             {/* Show Spending Limit Progress if set */}
@@ -433,7 +433,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   </div>
                </div>
             )}
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 truncate">
+            <h2 className="text-3xl font-black text-white tracking-tighter mb-4 truncate">
                 {formatCurrency(stats.balance)}
             </h2>
               <div className="flex gap-4">
@@ -448,7 +448,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               </div>
             </div>
             
-            <div className="w-full md:w-32 flex flex-col items-center">
+            <div className="w-full flex flex-col items-center">
               <div className="relative w-24 h-24 mb-2">
                 <svg className="w-full h-full" viewBox="0 0 36 36">
                   <path
@@ -477,7 +477,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </header>
 
       {/* TABS & SEARCH */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+      <div className="flex flex-col justify-between gap-6 mb-8">
         <div className="flex gap-2 glass-dark p-1.5 rounded-2xl border border-white/5 self-start">
           <button 
             onClick={() => setActiveTab('dashboard')} 
@@ -508,7 +508,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       {/* CONTENT */}
       <main>
         {activeTab === 'dashboard' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-slide-up">
+          <div className="grid grid-cols-1 gap-8 animate-slide-up">
             
             {/* CATEGORIES COLUMN */}
             <div className="space-y-6">
