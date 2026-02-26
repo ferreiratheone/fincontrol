@@ -1,10 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import Background3D from './components/Background3D';
+import { auth } from './services/firebase';
 
 export default function App() {
-  // Hardcoded user to bypass login
-  const user = { uid: 'local-device', email: 'local@fincontrol', displayName: 'Gestor' };
+  const [user, setUser] = useState<any | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    // Firebase auth listener + Anonymous login
+    const unsubscribe = auth.onAuthStateChanged(async (u) => {
+      if (u) {
+        // Logged in (anonymously or previously)
+        setUser({ uid: u.uid, email: 'local@fincontrol', displayName: 'Gestor' });
+        setIsAuthLoading(false);
+      } else {
+        // No user found, sign in anonymously
+        try {
+          await auth.signInAnonymously();
+        } catch (error) {
+          console.error("Anonymous auth failed:", error);
+          // Fallback to local user if completely offline/failing
+          setUser({ uid: 'local-device', email: 'local@fincontrol', displayName: 'Gestor' });
+          setIsAuthLoading(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div className="bg-[#020617] min-h-[100dvh] flex items-center justify-center font-sans overflow-hidden selection:bg-purple-500/30">
@@ -12,7 +36,13 @@ export default function App() {
         <Background3D />
         
         <div className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden no-scrollbar">
-          <Dashboard user={user} />
+          {isAuthLoading ? (
+            <div className="h-full flex items-center justify-center">
+              {/* Optional tiny loader or nothing, since user asked to remove loading. Kept minimal just in case */}
+            </div>
+          ) : (
+            <Dashboard user={user} />
+          )}
         </div>
       </div>
     </div>
