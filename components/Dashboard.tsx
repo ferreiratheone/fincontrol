@@ -87,7 +87,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     totalValue: '', 
     installments: '1', 
     isCreditCard: false, 
-    category: 'Fixa' 
+    category: 'Fixa',
+    type: 'expense'
   });
   
   const [incomeData, setIncomeData] = useState<IncomeForm>({ 
@@ -170,32 +171,41 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     
     let totalExp = 0;
     let totalPaid = 0;
+    let extraIncomeTotal = 0;
 
     sortedBills.forEach(bill => {
        const val = bill.value || 0;
-       totalExp += val;
-       if (bill.isPaid) totalPaid += val;
-
-       const due = bill.dueDate || 10;
        
-       if (bill.isPaid) {
-          if (due >= salaryDate && due < valeDate) {
-             availableSalary -= val;
-          } else if (due >= valeDate) {
-             if (availableVale >= val) {
-                availableVale -= val;
-             } else {
-                const remainder = val - availableVale;
-                availableVale = 0;
-                availableSalary -= remainder;
-             }
-          } else {
-             availableSalary -= val;
-          }
+       if (bill.type === 'income') {
+           extraIncomeTotal += val;
+           if (bill.isPaid) {
+               availableSalary += val; 
+           }
+       } else {
+           totalExp += val;
+           if (bill.isPaid) totalPaid += val;
+
+           const due = bill.dueDate || 10;
+           
+           if (bill.isPaid) {
+              if (due >= salaryDate && due < valeDate) {
+                 availableSalary -= val;
+              } else if (due >= valeDate) {
+                 if (availableVale >= val) {
+                    availableVale -= val;
+                 } else {
+                    const remainder = val - availableVale;
+                    availableVale = 0;
+                    availableSalary -= remainder;
+                 }
+              } else {
+                 availableSalary -= val;
+              }
+           }
        }
     });
 
-    const totalInc = (Number(currentIncome.salary) || 0) + (currentIncome.onlySalary ? 0 : (Number(currentIncome.vale) || 0));
+    const totalInc = (Number(currentIncome.salary) || 0) + (currentIncome.onlySalary ? 0 : (Number(currentIncome.vale) || 0)) + extraIncomeTotal;
     const balance = availableSalary + availableVale; 
     
     const usagePerc = totalInc > 0 ? (totalExp / totalInc) * 100 : 0;
@@ -330,6 +340,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           dueDate: Number(newBill.dueDate) || 10,
           category: newBill.category || 'Outros',
           isCreditCard: newBill.isCreditCard,
+          type: newBill.type || 'expense',
           updatedAt: timestamp
        } : b);
        saveBills(updatedBills);
@@ -354,6 +365,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           isPaid: false,
           category: newBill.category || 'Outros',
           isCreditCard: newBill.isCreditCard,
+          type: newBill.type || 'expense',
           dueDate: Number(newBill.dueDate) || 10,
           userId: user.uid || 'local-device',
           createdAt: timestamp,
@@ -375,7 +387,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     }
 
     setIsBillModalOpen(false);
-    setNewBill({ name: '', totalValue: '', installments: '1', isCreditCard: false, category: 'Fixa', dueDate: '' });
+    setNewBill({ name: '', totalValue: '', installments: '1', isCreditCard: false, category: 'Fixa', dueDate: '', type: 'expense' });
     setEditingBillId(null);
   };
 
@@ -386,7 +398,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       installments: bill.totalInstallments.toString(),
       isCreditCard: bill.isCreditCard,
       category: bill.category,
-      dueDate: bill.dueDate ? bill.dueDate.toString() : ''
+      dueDate: bill.dueDate ? bill.dueDate.toString() : '',
+      type: bill.type || 'expense'
     });
     setEditingBillId(bill.id);
     setIsBillModalOpen(true);
@@ -695,12 +708,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               currentMonthBills.map(bill => {
                 const CatInfo = CATEGORY_MAP[bill.category] || CATEGORY_MAP['Outros'];
                 const Icon = CatInfo.icon;
+                const isIncome = bill.type === 'income';
                 
                 return (
                   <div key={bill.id} className="glass-dark p-4 rounded-3xl border border-white/5 transition-all group hover:border-white/10 relative">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div onClick={() => updateStatus(bill.id, !bill.isPaid)} className={`cursor-pointer w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-md ${bill.isPaid ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}`}>
+                        <div onClick={() => updateStatus(bill.id, !bill.isPaid)} className={`cursor-pointer w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-md ${bill.isPaid ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : (isIncome ? 'bg-emerald-500/5 text-emerald-300 border border-emerald-500/10' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20')}`}>
                           {bill.isPaid ? <CheckCircle2 size={24} /> : <Clock size={24} />}
                         </div>
                         <div className="flex flex-col">
@@ -710,10 +724,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           
                           <div className="flex flex-col gap-1 mt-1">
                              <div className="flex items-center gap-2">
-                                <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider ${CatInfo.color}`}>
-                                    <Icon size={10} /> {bill.category}
-                                </div>
-                                {bill.isCreditCard && (
+                                {isIncome ? (
+                                  <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-emerald-400`}>
+                                      <TrendingUp size={10} /> Renda Extra
+                                  </div>
+                                ) : (
+                                  <div className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider ${CatInfo.color}`}>
+                                      <Icon size={10} /> {bill.category}
+                                  </div>
+                                )}
+                                {bill.isCreditCard && !isIncome && (
                                    <div className="flex items-center gap-1 text-[9px] font-black text-blue-400 uppercase tracking-widest bg-blue-400/10 px-1.5 py-0.5 rounded-md">
                                      <CreditCard size={8} /> Crédito
                                    </div>
@@ -721,14 +741,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                              </div>
                              
                              <span className="text-[9px] font-bold text-slate-500 mt-0.5">
-                                Vence dia {bill.dueDate || 10}
+                                {isIncome ? 'Recebimento dia' : 'Vence dia'} {bill.dueDate || 10}
                              </span>
                           </div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <span className={`text-base font-black tracking-tight transition-colors ${bill.isPaid ? 'text-slate-600' : 'text-white'}`}>
-                          {formatCurrency(bill.value)}
+                        <span className={`text-base font-black tracking-tight transition-colors ${bill.isPaid ? 'text-slate-600' : (isIncome ? 'text-emerald-400' : 'text-white')}`}>
+                          {isIncome ? '+' : ''}{formatCurrency(bill.value)}
                         </span>
                         
                         <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">

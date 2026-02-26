@@ -13,6 +13,7 @@ export interface Bill {
   isCreditCard: boolean;
   userId: string;
   dueDate?: number; // Day of month (1-31)
+  type?: 'expense' | 'income';
 }
 
 export interface Income {
@@ -42,6 +43,7 @@ export interface NewBillForm {
   isCreditCard: boolean;
   category: string;
   dueDate?: string;
+  type?: 'expense' | 'income';
 }
 
 export interface IncomeForm {

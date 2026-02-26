@@ -45,6 +45,23 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
         </div>
 
         <form onSubmit={onSave} className="space-y-6 relative z-10">
+          <div className="flex bg-slate-900 border border-white/10 p-1 rounded-2xl mb-2">
+            <button 
+              type="button"
+              onClick={() => onChange({...data, type: 'expense'})}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${data.type !== 'income' ? 'bg-indigo-600 shadow-lg shadow-indigo-600/20 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              Gasto (Saída)
+            </button>
+            <button 
+              type="button"
+              onClick={() => onChange({...data, type: 'income', category: 'Entrada'})} // Default category for safety
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${data.type === 'income' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              Renda Extra
+            </button>
+          </div>
+
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descrição</label>
             <div className="relative group">
@@ -117,26 +134,28 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
             </div>
           )}
 
-          <div className="space-y-3">
-             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
-             <div className="grid grid-cols-4 gap-2">
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                const isSelected = data.category === cat.id;
-                return (
-                  <button 
-                    key={cat.id} 
-                    type="button" 
-                    onClick={() => onChange({...data, category: cat.id})} 
-                    className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-300 ${isSelected ? 'bg-indigo-600/20 border-indigo-600 text-white shadow-lg shadow-indigo-600/10' : 'bg-white/5 border-transparent text-slate-500 hover:bg-white/10'}`}
-                  >
-                    <Icon size={18} className={isSelected ? cat.color : ''} />
-                    <span className="text-[8px] font-black uppercase tracking-tighter">{cat.id}</span>
-                  </button>
-                );
-              })}
+          {data.type !== 'income' && (
+            <div className="space-y-3">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+               <div className="grid grid-cols-4 gap-2">
+                {CATEGORIES.map(cat => {
+                  const Icon = cat.icon;
+                  const isSelected = data.category === cat.id;
+                  return (
+                    <button 
+                      key={cat.id} 
+                      type="button" 
+                      onClick={() => onChange({...data, category: cat.id})} 
+                      className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-300 ${isSelected ? 'bg-indigo-600/20 border-indigo-600 text-white shadow-lg shadow-indigo-600/10' : 'bg-white/5 border-transparent text-slate-500 hover:bg-white/10'}`}
+                    >
+                      <Icon size={18} className={isSelected ? cat.color : ''} />
+                      <span className="text-[8px] font-black uppercase tracking-tighter">{cat.id}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
           
           <button 
             type="submit" 
