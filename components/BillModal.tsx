@@ -76,7 +76,7 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid ${data.type === 'income' ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
             <div className="space-y-2 col-span-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Valor</label>
               <div className="relative">
@@ -92,19 +92,21 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSave, data, on
                 />
               </div>
             </div>
-            <div className="space-y-2 col-span-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Parcelas</label>
-              <div className="relative">
-                <input 
-                  type="number" 
-                  min="1" 
-                  placeholder="1x" 
-                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-center text-white placeholder:text-slate-700 transition-all" 
-                  value={data.installments} 
-                  onChange={e => onChange({...data, installments: e.target.value})} 
-                />
+            {data.type !== 'income' && (
+              <div className="space-y-2 col-span-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Parcelas</label>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    min="1" 
+                    placeholder="1x" 
+                    className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl px-4 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-sm text-center text-white placeholder:text-slate-700 transition-all" 
+                    value={data.installments} 
+                    onChange={e => onChange({...data, installments: e.target.value})} 
+                  />
+                </div>
               </div>
-            </div>
+            )}
              <div className="space-y-2 col-span-1">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Dia Venc.</label>
               <div className="relative">
