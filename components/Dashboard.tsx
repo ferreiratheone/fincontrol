@@ -398,11 +398,34 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     saveBills(updatedBills);
   };
 
-  const deleteBill = (id: string) => {
-    if (window.confirm("Tem certeza que deseja apagar este lançamento?")) {
-      const updatedBills = bills.filter(b => b.id !== id);
+  const deleteBill = (bill: Bill) => {
+    // Basic single bill deletion logic
+    const executeDelete = (idsToDelete: string[]) => {
+      const updatedBills = bills.filter(b => !idsToDelete.includes(b.id));
       saveBills(updatedBills);
-      showToast("Lançamento removido.", "info");
+      showToast(idsToDelete.length > 1 ? "Todas as parcelas foram removidas." : "Lançamento removido.", "info");
+    };
+
+    if (bill.purchaseId && bill.totalInstallments > 1) {
+      // It's part of a multi-installment purchase
+      const wantsAll = window.confirm(
+        `Esta é a parcela ${bill.installmentNumber} de ${bill.totalInstallments}.\n\nDeseja apagar TODAS as parcelas dessa compra junta?`
+      );
+      
+      if (wantsAll) {
+        // Find all bills with this purchaseId
+        const relatedIds = bills.filter(b => b.purchaseId === bill.purchaseId).map(b => b.id);
+        executeDelete(relatedIds);
+      } else {
+         if (window.confirm("Deseja apagar APENAS esta parcela selecionada?")) {
+           executeDelete([bill.id]);
+         }
+      }
+    } else {
+      // Regular single bill
+      if (window.confirm("Tem certeza que deseja apagar este lançamento?")) {
+        executeDelete([bill.id]);
+      }
     }
   };
 
@@ -712,7 +735,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                           <button onClick={() => handleEditBill(bill)} className="p-1.5 text-slate-500 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg">
                             <Pencil size={14}/>
                           </button>
-                          <button onClick={() => deleteBill(bill.id)} className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg">
+                          <button onClick={() => deleteBill(bill)} className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg">
                             <Trash2 size={14}/>
                           </button>
                         </div>
