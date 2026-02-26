@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import firebase from 'firebase/compat/app';
 import { 
   Plus, 
@@ -28,9 +28,14 @@ import {
   CreditCard,
   LogOut,
   Pencil,
-  User
+  User,
+  Target,
+  Smile,
+  PiggyBank,
+  Download,
+  Upload
 } from 'lucide-react';
-import { db, isDemo, auth } from '../services/firebase';
+import { db, isDemo } from '../services/firebase';
 import { Bill, Income, Stats, NewBillForm, IncomeForm } from '../types';
 import IncomeModal from './IncomeModal';
 import BillModal from './BillModal';
@@ -55,6 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Modal States
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
@@ -218,6 +224,82 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   }, [currentMonthBills, currentIncome]);
 
   // --- ACTIONS ---
+  const handleExportData = () => {
+    vibrate();
+    try {
+      const dataToExport = {
+        bills,
+        incomes
+      };
+      
+      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `fincontrol_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      showToast("Dados exportados com sucesso!", "success");
+    } catch (error) {
+      console.error("Erro ao exportar:", error);
+      showToast("Erro ao exportar dados.", "error");
+    }
+  };
+
+  const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    vibrate();
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importedData = JSON.parse(text);
+
+      if (!importedData.bills || !importedData.incomes) {
+        showToast("Arquivo inválido. Formato incorreto.", "error");
+        return;
+      }
+
+      if (window.confirm('Você tem certeza que deseja importar esses dados? Isso irá adicionar as informações do arquivo à sua conta atual.')) {
+        const batch = db.batch();
+        const userId = user.uid || 'demo-user';
+
+        // Add Incomes to Batch
+        importedData.incomes.forEach((income: any) => {
+          // If ID exists on imported data, use it; else generate a new one based on current mechanism
+          const docId = income.id || getIncomeDocId(new Date(income.createdAt || Date.now()));
+          const ref = db.collection('incomes').doc(docId);
+          batch.set(ref, {
+            ...income,
+            userId: userId // Ensure it's imported for the current user
+          }, { merge: true });
+        });
+
+        // Add Bills to Batch
+        importedData.bills.forEach((bill: any) => {
+          const ref = db.collection('bills').doc(bill.id || undefined); // let firestore generate if undefined
+          batch.set(ref, {
+            ...bill,
+            userId: userId
+          }, { merge: true });
+        });
+
+        await batch.commit();
+        showToast("Dados importados com sucesso!", "success");
+      }
+    } catch (error) {
+      console.error("Erro ao importar:", error);
+      showToast("Erro ao importar dados. Verifique o arquivo.", "error");
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset input so same file can be imported again if needed
+      }
+    }
+  };
+
   const openIncomeModal = () => {
     vibrate();
     setIncomeData({
@@ -377,16 +459,32 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
           </div>
           <div className="flex items-center gap-3">
             <button 
-              onClick={openIncomeModal} 
-              className="w-12 h-12 rounded-2xl glass-dark flex items-center justify-center text-slate-300 hover:text-white hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all"
+              onClick={handleExportData} 
+              className="w-10 h-10 rounded-2xl glass-dark flex items-center justify-center text-slate-300 hover:text-emerald-400 hover:border-emerald-400/50 hover:shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all"
+              title="Exportar Dados"
             >
-              <Wallet size={20} />
+              <Download size={18} />
             </button>
             <button 
-              onClick={() => auth.signOut()}
-              className="w-12 h-12 rounded-2xl glass-dark flex items-center justify-center text-slate-500 hover:text-rose-400 hover:border-rose-400/50 hover:shadow-[0_0_15px_rgba(244,63,94,0.3)] transition-all"
+              onClick={() => fileInputRef.current?.click()} 
+              className="w-10 h-10 rounded-2xl glass-dark flex items-center justify-center text-slate-300 hover:text-blue-400 hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(96,165,250,0.3)] transition-all"
+              title="Importar Dados"
             >
-              <LogOut size={20} />
+              <Upload size={18} />
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImportData} 
+                className="hidden" 
+                accept=".json" 
+              />
+            </button>
+            <button 
+              onClick={openIncomeModal} 
+              className="w-12 h-12 rounded-2xl glass-dark flex items-center justify-center text-slate-300 hover:text-white hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all"
+              title="Configurar Renda"
+            >
+              <Wallet size={20} />
             </button>
           </div>
         </div>
@@ -543,6 +641,49 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             {/* INSIGHTS COLUMN */}
             <div className="space-y-6">
                <h3 className="font-black text-white text-sm uppercase tracking-widest flex items-center gap-2 mb-4">
+                <Target size={16} className="text-emerald-400" /> Método 50/30/20
+              </h3>
+              
+              <div className="glass-dark p-6 rounded-[2rem] border border-emerald-500/20">
+                <p className="text-slate-400 text-xs mb-6">Uma sugestão inteligente de como dividir sua renda total de <strong>{formatCurrency(stats.totalInc)}</strong> para maior equilíbrio financeiro:</p>
+                
+                <div className="space-y-4">
+                  {/* 50% */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-2 text-slate-300 font-bold"><Home size={14} className="text-blue-400"/> 50% Essenciais</span>
+                      <span className="font-black text-white opacity-80">{formatCurrency(stats.totalInc * 0.5)}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-400 rounded-full shadow-[0_0_10px_rgba(96,165,250,0.5)]" style={{width: '50%'}}></div>
+                    </div>
+                  </div>
+                  
+                  {/* 30% */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-2 text-slate-300 font-bold"><Smile size={14} className="text-amber-400"/> 30% Pessoal / Lazer</span>
+                      <span className="font-black text-white opacity-80">{formatCurrency(stats.totalInc * 0.3)}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.5)]" style={{width: '30%'}}></div>
+                    </div>
+                  </div>
+
+                  {/* 20% */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-2 text-slate-300 font-bold"><PiggyBank size={14} className="text-emerald-400"/> 20% Investimentos</span>
+                      <span className="font-black text-white opacity-80">{formatCurrency(stats.totalInc * 0.2)}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.5)]" style={{width: '20%'}}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+               <h3 className="font-black text-white text-sm uppercase tracking-widest flex items-center gap-2 mb-4 mt-8">
                 <Star size={16} className="text-amber-400" /> Insights de Gestão
               </h3>
               <div className="space-y-4">
